@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="http://tajs.qq.com/stats?sId=53341961" charset="UTF-8"></script>
+  <meta charset="utf-8">
+  
+  <title>机器学习（13）机器学习系统设计 | GZF&#39;blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="例子
+垃圾邮件分类器
+
+首先，如何选择并表达特征向量x。我们可以选择由100个常常出现在垃圾邮件中的词构成以列表，根据这些词是否出现在邮件上确定我们的特征向量，比如出现垃圾词，则对应位置置1，否则为0。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习（13）机器学习系统设计">
+<meta property="og:url" content="http://yoursite.com/2015/12/15/Machine-Learning-System-Design/index.html">
+<meta property="og:site_name" content="GZF'blog">
+<meta property="og:description" content="例子
+垃圾邮件分类器
+
+首先，如何选择并表达特征向量x。我们可以选择由100个常常出现在垃圾邮件中的词构成以列表，根据这些词是否出现在邮件上确定我们的特征向量，比如出现垃圾词，则对应位置置1，否则为0。">
+<meta property="og:image" content="http://dn-mistergao.qbox.me/ml-precision-recall.png">
+<meta property="og:image" content="http://dn-mistergao.qbox.me/ml-precision-recall-1.png">
+<meta property="og:image" content="http://dn-mistergao.qbox.me/ml-precision-recall-2.png">
+<meta property="og:updated_time" content="2015-12-15T15:11:21.560Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="机器学习（13）机器学习系统设计">
+<meta name="twitter:description" content="例子
+垃圾邮件分类器
+
+首先，如何选择并表达特征向量x。我们可以选择由100个常常出现在垃圾邮件中的词构成以列表，根据这些词是否出现在邮件上确定我们的特征向量，比如出现垃圾词，则对应位置置1，否则为0。">
+<meta name="twitter:image" content="http://dn-mistergao.qbox.me/ml-precision-recall.png">
+  
+    <link rel="alternative" href="/atom.xml" title="GZF&#39;blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="http://7xoaj3.com1.z0.glb.clouddn.com/tx.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="http://7xoaj3.com1.z0.glb.clouddn.com/tx.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">GZF</a></h1>
+		</hgroup>
+
+		
+		<p class="header-subtitle">今天天气不错</p>
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+							<li><a href="/tags/机器学习">机器学习</a></li>
+				        
+							<li><a href="/tags/随笔">随笔</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/mistergao" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="http://weibo.com/u/5242860847" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/SVM/" style="font-size: 10px;">SVM</a> <a href="/tags/多变量线性回归/" style="font-size: 10px;">多变量线性回归</a> <a href="/tags/多项式回归/" style="font-size: 10px;">多项式回归</a> <a href="/tags/支持向量机/" style="font-size: 10px;">支持向量机</a> <a href="/tags/无监督学习/" style="font-size: 10px;">无监督学习</a> <a href="/tags/机器学习/" style="font-size: 16.67px;">机器学习</a> <a href="/tags/机器学期/" style="font-size: 10px;">机器学期</a> <a href="/tags/梯度下降/" style="font-size: 13.33px;">梯度下降</a> <a href="/tags/梯度下降法/" style="font-size: 10px;">梯度下降法</a> <a href="/tags/概念/" style="font-size: 10px;">概念</a> <a href="/tags/正则化/" style="font-size: 10px;">正则化</a> <a href="/tags/正规方程/" style="font-size: 10px;">正规方程</a> <a href="/tags/监督学习/" style="font-size: 10px;">监督学习</a> <a href="/tags/神经网络/" style="font-size: 13.33px;">神经网络</a> <a href="/tags/笔记/" style="font-size: 20px;">笔记</a> <a href="/tags/系统设计/" style="font-size: 10px;">系统设计</a> <a href="/tags/线性回归/" style="font-size: 10px;">线性回归</a> <a href="/tags/逻辑回归/" style="font-size: 10px;">逻辑回归</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">我的的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">我的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">苦逼的入门者</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">GZF</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="http://7xoaj3.com1.z0.glb.clouddn.com/tx.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">GZF</h1>
+			</hgroup>
+			
+			<p class="header-subtitle">今天天气不错</p>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+					<li><a href="/tags/机器学习">机器学习</a></li>
+		        
+					<li><a href="/tags/随笔">随笔</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/mistergao" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="http://weibo.com/u/5242860847" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-Machine-Learning-System-Design" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/12/15/Machine-Learning-System-Design/" class="article-date">
+  	<time datetime="2015-12-15T15:02:55.000Z" itemprop="datePublished">2015-12-15</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      机器学习（13）机器学习系统设计
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/机器学习/">机器学习</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/笔记/">笔记</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/系统设计/">系统设计</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><blockquote>
+<p>垃圾邮件分类器</p>
+</blockquote>
+<p>首先，如何选择并表达特征向量x。<br>我们可以选择由100个常常出现在垃圾邮件中的词构成以列表，根据这些词是否出现在邮件上确定我们的特征向量，比如出现垃圾词，则对应位置置1，否则为0。<br><a id="more"></a></p>
+<h3 id="误差分析"><a href="#误差分析" class="headerlink" title="误差分析"></a>误差分析</h3><p>构建学习算法的推荐方法：</p>
+<ol>
+<li>从一个简单能快速实现的算法开始，实现该算法并用交叉验证集测试算法</li>
+<li>绘制学习曲线，决定下一步的改善方法。增加数据还是添加特征变量等等</li>
+<li>进行误差分析：人工检查交叉验证集中使我们算法产生误差的实例，观察这些实例是否有什么系统特征</li>
+</ol>
+<p>在垃圾邮件过滤中，误差分析就是观察交叉验证集中使我们算法产生错误预测的邮件，是否能将这些邮件分类，比如有仿冒品垃圾邮件或者密码窃取邮件等等，然后看看我们算法对那类邮件预测误差比较大，并着手优化。</p>
+<p>改如何改进我们的邮件分类器。可以观察是否缺少某些特征，记录这些特征出现的次数。可以记录下错误拼写次数，异常邮件路由情况等等。</p>
+<p>误差分析并不一定能帮助我们判断怎么优化我们的学习算法。有时我们需要尝试不同的模型。用数值来判断哪个模型效果更好，通常我们可以使用交叉验证集误差来判断。</p>
+<p>此外，在我们垃圾邮件分类学习算法中，有些单词应该处理成同一个词（discount/discounts/discounted/discounting）。这样做能改善我们的算法，这是误差分析不能够帮助我们解决的。我们通过选择不同的截词工具，然后通过数值检验来选择效果最后的截词工具。</p>
+<h3 id="类偏斜的误差度量"><a href="#类偏斜的误差度量" class="headerlink" title="类偏斜的误差度量"></a>类偏斜的误差度量</h3><blockquote>
+<p>类偏斜情况表现为我们训练集中有非常过的同一种类的实例，只有很少或者没有其他类的实例。</p>
+</blockquote>
+<p>下面我们看看例子（预测癌症是否为恶性）</p>
+<p>在我们的训练集中只有0.5%的实例是恶性肿瘤。假如我们使用一个非学习算法，任何情况的预测结果都是良性的，那么误差也只有0.5%。然而我们通过学习算法来预测误差却达到1%。这是误差不能作为评判我们算法的依据。</p>
+<p>查准率（Percision）和查全率（Recall）我们将算法的预测结果分类如下四类：</p>
+<ol>
+<li>真阳性（True Positive, TP）正确预测为阳性,实际为阳性</li>
+<li>真阴性（True Negative, TN）正确预测为阴性，实际为阴性</li>
+<li>假阳性（False Positive, FP）错误预测为阳性，实际为阴性</li>
+<li>假阴性（False Negative, FN）错误预测为阴性，实际为阳性</li>
+</ol>
+<p><img src="http://dn-mistergao.qbox.me/ml-precision-recall.png" alt="查准率和查全率"></p>
+<p>查准率 = TP/(TP+FP)。在所有预测为恶性肿瘤的病人中，实际上有恶性肿瘤的比率。此值越高越好。<br>查全率 = TP/(TP+FN)。你有恶性肿瘤，能够预测出来的概率。此值越高越好。</p>
+<h3 id="查准率与查全率的权衡"><a href="#查准率与查全率的权衡" class="headerlink" title="查准率与查全率的权衡"></a>查准率与查全率的权衡</h3><p>在肿瘤预测的例子中<br><img src="http://dn-mistergao.qbox.me/ml-precision-recall-1.png" alt="查准率和查全率"><br>阈值0.5作为一个分界线，大于或等于0.5时预测为是恶性，小于0.5时预测为良性。</p>
+<p>如果我们将阈值增大，比如改为0.7。这样我们会减少错误地预测病人为恶性肿瘤，同时也增加了未能成功预测肿瘤为恶性的情况。<br>此时，有较高的查准率，较低的查全率。</p>
+<p>如果我们将阈值减小，比如改为0.3。这样能够使避免错过恶性肿瘤的案例，但是同时也增加了没有恶性肿瘤却预测为有恶性肿瘤的数量。<br>此时，有较高的查全率，较低的查准率。</p>
+<p>阈值与出准率和查全率<br><img src="http://dn-mistergao.qbox.me/ml-precision-recall-2.png" alt="查准率和查全率"></p>
+<p>那么该如何选择阈值。<br>我们可以通过通过计算$F_1Score:2\frac{PR}{P+R}$，选择使$F_1$值最大的阈值。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/01/07/svm/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          机器学习（14）支持向量机
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/12/15/Advice-for-Applying-Machine-Learning/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">机器学习（12）应用机器学习的建议</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="Machine-Learning-System-Design" data-title="机器学习（13）机器学习系统设计" data-url="http://yoursite.com/2015/12/15/Machine-Learning-System-Design/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"mistergao"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2016 GZF
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript" src="http://tajs.qq.com/stats?sId=53341961" charset="UTF-8"></script>
+  <meta charset="utf-8">
+  
+  <title>机器学习（09）正则化 | GZF&#39;blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="过拟合 欠拟合回归问题例子：
+
+第一个模型是一个线性模型，不能很好地适应训练集，欠拟合；第三个模型是一个四次方的模型，过于拟合训练的数据，过拟合，失去了预测新数据的 功能。而中间的模型比较适合。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="机器学习（09）正则化">
+<meta property="og:url" content="http://yoursite.com/2015/11/30/Regularization/index.html">
+<meta property="og:site_name" content="GZF'blog">
+<meta property="og:description" content="过拟合 欠拟合回归问题例子：
+
+第一个模型是一个线性模型，不能很好地适应训练集，欠拟合；第三个模型是一个四次方的模型，过于拟合训练的数据，过拟合，失去了预测新数据的 功能。而中间的模型比较适合。">
+<meta property="og:image" content="https://dn-mistergao.qbox.me/ml-fit.png">
+<meta property="og:image" content="https://dn-mistergao.qbox.me/ml-fit2.png">
+<meta property="og:image" content="https://dn-mistergao.qbox.me/ml-fit-cost.png">
+<meta property="og:image" content="https://dn-mistergao.qbox.me/ml-fit-cost-2.png">
+<meta property="og:image" content="https://dn-mistergao.qbox.me/ml-regulated.png">
+<meta property="og:image" content="https://dn-mistergao.qbox.me/ml-regulated-linear.png">
+<meta property="og:image" content="http://dn-mistergao.qbox.me/ml-logitic-cost.png">
+<meta property="og:updated_time" content="2015-12-01T07:31:49.759Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="机器学习（09）正则化">
+<meta name="twitter:description" content="过拟合 欠拟合回归问题例子：
+
+第一个模型是一个线性模型，不能很好地适应训练集，欠拟合；第三个模型是一个四次方的模型，过于拟合训练的数据，过拟合，失去了预测新数据的 功能。而中间的模型比较适合。">
+<meta name="twitter:image" content="https://dn-mistergao.qbox.me/ml-fit.png">
+  
+    <link rel="alternative" href="/atom.xml" title="GZF&#39;blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="http://7xoaj3.com1.z0.glb.clouddn.com/tx.png">
+  
+  <link rel="stylesheet" href="/css/style.css">
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="http://7xoaj3.com1.z0.glb.clouddn.com/tx.png" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">GZF</a></h1>
+		</hgroup>
+
+		
+		<p class="header-subtitle">今天天气不错</p>
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						<div class="icon-wrap icon-link hide" data-idx="2">
+							<div class="loopback_l"></div>
+							<div class="loopback_r"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						<li>友情链接</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+							<li><a href="/tags/机器学习">机器学习</a></li>
+				        
+							<li><a href="/tags/随笔">随笔</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/mistergao" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="http://weibo.com/u/5242860847" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="#" title="rss">rss</a>
+					        
+								<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/SVM/" style="font-size: 10px;">SVM</a> <a href="/tags/多变量线性回归/" style="font-size: 10px;">多变量线性回归</a> <a href="/tags/多项式回归/" style="font-size: 10px;">多项式回归</a> <a href="/tags/支持向量机/" style="font-size: 10px;">支持向量机</a> <a href="/tags/无监督学习/" style="font-size: 10px;">无监督学习</a> <a href="/tags/机器学习/" style="font-size: 16.67px;">机器学习</a> <a href="/tags/机器学期/" style="font-size: 10px;">机器学期</a> <a href="/tags/梯度下降/" style="font-size: 13.33px;">梯度下降</a> <a href="/tags/梯度下降法/" style="font-size: 10px;">梯度下降法</a> <a href="/tags/概念/" style="font-size: 10px;">概念</a> <a href="/tags/正则化/" style="font-size: 10px;">正则化</a> <a href="/tags/正规方程/" style="font-size: 10px;">正规方程</a> <a href="/tags/监督学习/" style="font-size: 10px;">监督学习</a> <a href="/tags/神经网络/" style="font-size: 13.33px;">神经网络</a> <a href="/tags/笔记/" style="font-size: 20px;">笔记</a> <a href="/tags/系统设计/" style="font-size: 10px;">系统设计</a> <a href="/tags/线性回归/" style="font-size: 10px;">线性回归</a> <a href="/tags/逻辑回归/" style="font-size: 10px;">逻辑回归</a>
+					</div>
+				</section>
+				
+				
+				
+				<section class="switch-part switch-part3">
+					<div id="js-friends">
+					
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">我的的博客</a>
+			        
+			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">我的博客</a>
+			        
+			        </div>
+				</section>
+				
+
+				
+				
+				<section class="switch-part switch-part4">
+				
+					<div id="js-aboutme">苦逼的入门者</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">GZF</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="http://7xoaj3.com1.z0.glb.clouddn.com/tx.png" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">GZF</h1>
+			</hgroup>
+			
+			<p class="header-subtitle">今天天气不错</p>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+					<li><a href="/tags/机器学习">机器学习</a></li>
+		        
+					<li><a href="/tags/随笔">随笔</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/mistergao" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="http://weibo.com/u/5242860847" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="#" title="rss">rss</a>
+			        
+						<a class="zhihu" target="_blank" href="#" title="zhihu">zhihu</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-Regularization" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/11/30/Regularization/" class="article-date">
+  	<time datetime="2015-11-30T11:35:44.000Z" itemprop="datePublished">2015-11-30</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      机器学习（09）正则化
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/机器学习/">机器学习</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/正则化/">正则化</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/笔记/">笔记</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="过拟合-欠拟合"><a href="#过拟合-欠拟合" class="headerlink" title="过拟合 欠拟合"></a>过拟合 欠拟合</h3><p>回归问题例子：</p>
+<p><img src="https://dn-mistergao.qbox.me/ml-fit.png" alt="过拟合和欠拟合"></p>
+<p>第一个模型是一个线性模型，不能很好地适应训练集，欠拟合；第三个模型是一个四次方的模型，过于拟合训练的数据，过拟合，失去了预测新数据的 功能。而中间的模型比较适合。</p>
+<a id="more"></a>
+<p>分类问题例子：</p>
+<p><img src="https://dn-mistergao.qbox.me/ml-fit2.png" alt="过拟合和欠拟合"></p>
+<p>过拟合都会使预测能力变差了。</p>
+<h3 id="处理过拟合问题"><a href="#处理过拟合问题" class="headerlink" title="处理过拟合问题"></a>处理过拟合问题</h3><p>1、舍弃一些不能帮助我们预测的特征。可以手工舍弃，或者通过一些<br>模型选择算法（如PCA）<br>2、正则化。保留所有的特征，但是使参数变小。</p>
+<h3 id="代价函数加上正则化项"><a href="#代价函数加上正则化项" class="headerlink" title="代价函数加上正则化项"></a>代价函数加上正则化项</h3><p>回归模型中<br><img src="https://dn-mistergao.qbox.me/ml-fit-cost.png" alt="过拟合的回归模型"><br>从之前的图像可以看出，正是那些高次项导致了过拟合的产生，所以我们要将高次项的系数减小，让其接近0的话，我们就能够得到一个很好的拟合。这就是正则化的基本方法。<br>在这个例子中我们要减小$\theta_3$、$\theta_4$。我们在代价函数中加上对$\theta_3$、$\theta_4$的惩罚。如下：<br><img src="https://dn-mistergao.qbox.me/ml-fit-cost-2.png" alt="过拟合的回归模型"></p>
+<p>通过这种代价函数得到的$\theta_3$、$\theta_4$对预测的结果影响就会小很多了。<br>但是在有很多的特征的情况小，我们并不知道需要惩罚哪些特征，我们通常会对所有的特征进行惩罚，并让代价函数最优化软件来选择惩罚的程度。代价函数如下：<br>$$J(\theta) = \frac{1}{2m}[\sum_{i=1}^m ((h_\theta(x^{(i)})-y^{(i)})^2 + \lambda \sum_{j=1}^n \theta_j^2 )$$<br>其中$\lambda$称为正则化参数（Regularization Parameter）。通常我们不对$\theta_0$进行惩罚。</p>
+<p>下图为正则化的效果<br><img src="https://dn-mistergao.qbox.me/ml-regulated.png" alt="过拟合的回归模型"></p>
+<p>从图中我们可以看出来，如红色模型所示，如果正则化参数$\lambda$过大，则会把所有的参数都最小化，模型接近于$h_\theta(x) = \theta_0$，将造成欠拟合。</p>
+<h3 id="正则化线性回归"><a href="#正则化线性回归" class="headerlink" title="正则化线性回归"></a>正则化线性回归</h3><p>正则化线性回归的代价函数为：<br>$$J(\theta) = \frac{1}{2m}[\sum_{i=1}^m ((h_\theta(x^{(i)})-y^{(i)})^2 + \lambda \sum_{j=1}^n \theta_j^2 )$$<br>因为我们没有对$\theta_0$使用正则化，所以 梯度下降算法如下：<br>Repeat until convergence{<br>$\theta_0 := \theta_0 - \alpha \frac{1}{m} \sum_{i=1}^m((h_\theta(x^{(i)})-y^{(i)}) \cdot x_0^{(i)})$<br>$\theta_j := \theta_j - \alpha \frac{1}{m} [\sum_{i=1}^m((h_\theta(x^{(i)})-y^{(i)}) \cdot x_j^{(i)}) + \lambda\theta_j]$<br>for $j = 1,2, \ldots ,n$<br>}<br>对上述算法中$j = 1,2, \ldots ,n$时的式子调整有：<br>$$\theta_j := \theta_j (1 - \alpha \frac{\lambda}{m}) -  \alpha \frac{1}{m} \sum_{i=1}^m((h_\theta(x^{(i)})-y^{(i)}) \cdot x_j^{(i)}) $$</p>
+<p>从上面的式子中我们可以看出来，使用了正则化的线性回归的梯度下降算法变化的地方在于，每次都在原有的更新规则上令$\theta$减少$\alpha \frac{\lambda}{m}\theta$</p>
+<p>同样我们也可以使用正规方程求解正则化的线性回归模型，公式如下：<br><img src="https://dn-mistergao.qbox.me/ml-regulated-linear.png" alt="正规方程解正则化的线性回归公式"><br>图中矩阵为（n+1）*（n+1）大小的矩阵。</p>
+<h3 id="正则化的逻辑回归模型"><a href="#正则化的逻辑回归模型" class="headerlink" title="正则化的逻辑回归模型"></a>正则化的逻辑回归模型</h3><p>同样地，我们也给逻辑回归的代价函数加上一个正则化的表达式，如下：<br><img src="http://dn-mistergao.qbox.me/ml-logitic-cost.png" alt="正则化的逻辑回归代价函数"></p>
+<p>梯度下降法：<br>Repeat until convergence{<br>$\theta_0 := \theta_0 - \alpha \frac{1}{m} \sum_{i=1}^m((h_\theta(x^{(i)})-y^{(i)}) \cdot x_0^{(i)})$<br>$\theta_j := \theta_j - \alpha \frac{1}{m} [\sum_{i=1}^m((h_\theta(x^{(i)})-y^{(i)}) \cdot x_j^{(i)}) + \lambda\theta_j]$<br>for $j = 1,2, \ldots ,n$<br>}</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/12/04/Neural-Networks/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          机器学习（10）神经网络
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/11/30/Logistic-Regression/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">机器学习（08）逻辑回归</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="Regularization" data-title="机器学习（09）正则化" data-url="http://yoursite.com/2015/11/30/Regularization/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"mistergao"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2016 GZF
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>
